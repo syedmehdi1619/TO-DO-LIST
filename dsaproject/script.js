@@ -871,7 +871,7 @@ function renderDeletedTasks() {
         div.innerHTML = `
             <div class="deleted-task-title">${escapeHTML(task.name)}</div>
             <div class="deleted-task-meta">
-                <span>Priority: <span class="task-badge-highlight badge-${task.priority ? task.priority.toLowerCase() : 'low'}">${task.priority || 'Low'}</span></span>
+               <span>Priority:<span class="task-badge-highlight ${ task.priority ? `badge-${task.priority.toLowerCase()}` : '' }">${task.priority || 'No Priority'} </span></span>
                 <span>Due: ${task.dueDate}</span>
             </div>
             <div class="deleted-task-actions">
