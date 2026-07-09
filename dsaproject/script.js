@@ -548,7 +548,6 @@ function startEditTask(id) {
 
 
 // 8. SEARCH ALGORITHM (Hash Table Search Index)
-
 function performHashTableSearch(nameQuery, categoryQuery, assigneeQuery) {
     let matchedTasks = null;
 
@@ -566,22 +565,30 @@ function performHashTableSearch(nameQuery, categoryQuery, assigneeQuery) {
         const cleanQuery = nameQuery.trim().toLowerCase();
 
         // Exact name lookup
-        let queryResults = taskSearchTable.get("name:" + cleanQuery);
+        const exactResults = taskSearchTable.get("name:" + cleanQuery);
 
         // Word-by-word intersection lookup
-        if (queryResults.length === 0) {
-            const words = cleanQuery.split(/\s+/);
-            let wordResults = null;
-            for (const word of words) {
-                const cleanWord = word.replace(/[^a-z0-9]/g, '');
-                if (cleanWord) {
-                    const tasksForWord = taskSearchTable.get("word:" + cleanWord);
-                    wordResults = intersect(wordResults, tasksForWord);
-                }
+        const words = cleanQuery.split(/\s+/);
+        let wordResults = null;
+        for (const word of words) {
+            const cleanWord = word.replace(/[^a-z0-9]/g, '');
+            if (cleanWord) {
+                const tasksForWord = taskSearchTable.get("word:" + cleanWord);
+                wordResults = intersect(wordResults, tasksForWord);
             }
-            queryResults = wordResults || [];
         }
-        matchedTasks = intersect(matchedTasks, queryResults);
+        wordResults = wordResults || [];
+
+        // Combine (union) exact results and word results
+        const combinedResults = [...exactResults];
+        const exactIds = new Set(exactResults.map(t => t.id));
+        wordResults.forEach(t => {
+            if (!exactIds.has(t.id)) {
+                combinedResults.push(t);
+            }
+        });
+
+        matchedTasks = intersect(matchedTasks, combinedResults);
     }
 
     // 2. Search by Category
@@ -593,21 +600,32 @@ function performHashTableSearch(nameQuery, categoryQuery, assigneeQuery) {
     // 3. Search by Assignee
     if (assigneeQuery) {
         const cleanAssignee = assigneeQuery.trim().toLowerCase();
-        let assigneeResults = taskSearchTable.get("assignee:" + cleanAssignee);
+        
+        // Exact assignee lookup
+        const exactAssigneeResults = taskSearchTable.get("assignee:" + cleanAssignee);
 
-        if (assigneeResults.length === 0) {
-            const words = cleanAssignee.split(/\s+/);
-            let wordResults = null;
-            for (const word of words) {
-                const cleanWord = word.replace(/[^a-z0-9]/g, '');
-                if (cleanWord) {
-                    const tasksForWord = taskSearchTable.get("assignee_word:" + cleanWord);
-                    wordResults = intersect(wordResults, tasksForWord);
-                }
+        // Word-by-word intersection lookup
+        const words = cleanAssignee.split(/\s+/);
+        let wordResults = null;
+        for (const word of words) {
+            const cleanWord = word.replace(/[^a-z0-9]/g, '');
+            if (cleanWord) {
+                const tasksForWord = taskSearchTable.get("assignee_word:" + cleanWord);
+                wordResults = intersect(wordResults, tasksForWord);
             }
-            assigneeResults = wordResults || [];
         }
-        matchedTasks = intersect(matchedTasks, assigneeResults);
+        wordResults = wordResults || [];
+
+        // Combine (union) exact results and word results
+        const combinedAssigneeResults = [...exactAssigneeResults];
+        const exactIds = new Set(exactAssigneeResults.map(t => t.id));
+        wordResults.forEach(t => {
+            if (!exactIds.has(t.id)) {
+                combinedAssigneeResults.push(t);
+            }
+        });
+
+        matchedTasks = intersect(matchedTasks, combinedAssigneeResults);
     }
 
     // If no search filter is applied, return all active tasks (FIFO Queue order)
@@ -619,6 +637,7 @@ function performHashTableSearch(nameQuery, categoryQuery, assigneeQuery) {
     const matchedIds = new Set(matchedTasks.map(t => t.id));
     return tasks.filter(t => matchedIds.has(t.id));
 }
+
 
 // 9. SORTING ALGORITHM (Merge Sort Implementation)
 
