@@ -1,0 +1,1143 @@
+/* ==========================================================================
+   CSS VARIABLE DEFINITIONS (Notebook Theme Tokens)
+   ========================================================================== */
+:root {
+    /* Paper & Spine */
+    --paper-bg: #faf9f5;            
+    --line-blue: rgba(147, 197, 253, 0.45); 
+    --margin-red: rgba(239, 68, 68, 0.55);  
+    
+    /* Ink Colors */
+    --ink-black: #111827;           
+    --ink-blue: #1e3a8a;            
+    --ink-gray: #4b5563;            
+    
+    --work-highlight: rgba(59, 130, 246, 0.18);
+    --work-text: #1d4ed8;
+    --study-highlight: rgba(139, 92, 246, 0.18);
+    --study-text: #6d28d9;
+    --personal-highlight: rgba(16, 185, 129, 0.18);
+    --personal-text: #047857;
+    --project-highlight: rgba(245, 158, 11, 0.18);
+    --project-text: #b55309;
+    --meeting-highlight: rgba(236, 72, 153, 0.18);
+    --meeting-text: #be185d;
+
+    /* Theme adaptive backgrounds & borders */
+    --drawer-bg: #fdfbf7;
+    --card-hover-bg: rgba(0, 0, 0, 0.02);
+    --empty-bg: rgba(255, 255, 255, 0.4);
+    --select-option-bg: #ffffff;
+    
+    /* Priority Colors (Pastel) */
+    --high-highlight: rgba(239, 68, 68, 0.15);
+    --high-text: #b91c1c;
+    --medium-highlight: rgba(245, 158, 11, 0.15);
+    --medium-text: #d97706;
+    --low-highlight: rgba(107, 114, 128, 0.15);
+    --low-text: #4b5563;
+}
+
+body.dark-theme {
+    --paper-bg: #121212;
+    --line-blue: #2d2d2d;
+    --margin-red: rgba(239, 68, 68, 0.7);
+    
+    --ink-black: #e5e7eb;
+    --ink-blue: #60a5fa;
+    --ink-gray: #9ca3af;
+    
+    --work-highlight: rgba(96, 165, 250, 0.25);
+    --work-text: #93c5fd;
+    --study-highlight: rgba(167, 139, 250, 0.25);
+    --study-text: #c084fc;
+    --personal-highlight: rgba(52, 211, 153, 0.25);
+    --personal-text: #34d399;
+    --project-highlight: rgba(251, 191, 36, 0.25);
+    --project-text: #fbbf24;
+    --meeting-highlight: rgba(244, 114, 182, 0.25);
+    --meeting-text: #f472b6;
+
+    --drawer-bg: #202124;
+    --card-hover-bg: rgba(255, 255, 255, 0.05);
+    --empty-bg: rgba(30, 30, 30, 0.6);
+    --select-option-bg: #202124;
+
+    --high-highlight: rgba(248, 113, 113, 0.25);
+    --high-text: #fca5a5;
+    --medium-highlight: rgba(251, 191, 36, 0.25);
+    --medium-text: #fde047;
+    --low-highlight: rgba(156, 163, 175, 0.25);
+    --low-text: #e5e7eb;
+}
+
+/* ==========================================================================
+   BASE & RESET STYLES
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--paper-bg);
+    /* Set repeating ruled lines for the entire document window */
+    background-image: linear-gradient(var(--line-blue) 1px, transparent 1px);
+    background-size: 100% 36px;
+    background-attachment: local;
+    background-position: 0 10px;
+    
+    color: var(--ink-black);
+    font-family: 'Kalam', cursive;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease, background-image 0.3s ease, border-color 0.3s ease;
+}
+
+/* Fixed Vertical Red Margin Line */
+.vertical-margin-line {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 150px;
+    width: 2px;
+    background-color: var(--margin-red);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   MAIN PAGE LAYOUT
+   ========================================================================== */
+.notebook-page-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 30px 40px 60px 180px; /* 180px left padding keeps content on the right of the 150px margin line */
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+}
+
+/* ==========================================================================
+   HEADER SECTION DESIGN
+   ========================================================================== */
+.notebook-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px double var(--line-blue);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+    gap: 30px;
+}
+
+/* App Title and Subtitle */
+.title-section {
+    margin-bottom: 15px;
+}
+
+.app-title {
+    font-family: 'Kalam', cursive;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--ink-blue);
+    line-height: 1.1;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.app-subtitle {
+    font-size: 0.95rem;
+    color: var(--ink-gray);
+    font-style: italic;
+}
+
+/* Pinned stats block */
+.dashboard-stats {
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+.stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.stats-item {
+    font-weight: 700;
+}
+
+.stats-separator {
+    color: var(--margin-red);
+    font-weight: bold;
+    user-select: none;
+}
+
+.stats-progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.progress-label {
+    font-weight: 700;
+    color: var(--ink-gray);
+    font-size: 0.95rem;
+}
+
+.progress-line-container {
+    flex-grow: 1;
+    max-width: 180px;
+    height: 8px;
+    border: 1px dashed var(--ink-blue);
+    border-radius: 4px;
+    overflow: hidden;
+    padding: 1px;
+    background: transparent;
+}
+
+.progress-line-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--ink-blue);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   TOP RIGHT CONTROL AREA (Index Fields Theme)
+   ========================================================================== */
+.top-right-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.date-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    border-bottom: 1.5px solid var(--line-blue);
+    padding-bottom: 2px;
+}
+
+.day-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink-gray);
+    text-transform: uppercase;
+}
+
+.date-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-black);
+}
+
+/* Search Ledger Inputs */
+.search-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-section .control-label {
+    align-self: flex-start;
+}
+
+.search-line-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.search-input {
+    border: none;
+    border-bottom: 1.5px dashed var(--ink-gray);
+    background: transparent;
+    font-family: 'Kalam', cursive;
+    font-size: 1rem;
+    color: var(--ink-black);
+    padding: 2px 4px;
+    flex: 1;
+    width: 100%;
+    transition: border-bottom-color 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-bottom: 1.5px solid var(--ink-blue);
+}
+
+select.search-input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    background-size: 14px;
+    padding-right: 18px;
+}
+
+/* Filters and Sorting Row */
+.filter-sorting-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    border-top: 1px dashed var(--line-blue);
+    padding-top: 10px;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--ink-gray);
+    font-weight: 700;
+    margin-right: 5px;
+    user-select: none;
+}
+
+.filter-group-container {
+    display: flex;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-btn {
+    background: none;
+    border: none;
+    font-family: 'Kalam', cursive;
+    font-size: 1rem;
+    color: var(--ink-gray);
+    padding: 2px 6px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.filter-btn:hover {
+    color: var(--ink-black);
+}
+
+.filter-btn.active {
+    color: var(--ink-blue);
+    font-weight: 700;
+}
+
+.filter-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: -1px;
+    height: 1.5px;
+    background-color: var(--ink-blue);
+    border-radius: 1px;
+}
+
+.sorting-container {
+    display: flex;
+    align-items: center;
+}
+
+.sort-select {
+    border: none;
+    border-bottom: 1.5px dashed var(--ink-gray);
+    background: transparent;
+    font-family: 'Kalam', cursive;
+    font-size: 1rem;
+    color: var(--ink-black);
+    cursor: pointer;
+    padding: 2px 18px 2px 2px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    background-size: 12px;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-bottom: 1.5px solid var(--ink-blue);
+}
+
+/* Undo Controller */
+.undo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.undo-btn {
+    background: transparent;
+    border: 1px solid var(--project-text);
+    border-radius: 4px;
+    color: var(--project-text);
+    font-family: 'Kalam', cursive;
+    font-size: 0.9rem;
+    padding: 1px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.undo-btn:hover:not(:disabled) {
+    background-color: var(--project-highlight);
+}
+
+.undo-btn:disabled {
+    border-color: #cbd5e1;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.undo-status-msg {
+    font-size: 0.85rem;
+    color: var(--project-text);
+    font-style: italic;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   TASK WRITING AREA & LEDGER BODY
+   ========================================================================== */
+.ledger-body {
+    flex-grow: 1;
+    margin-top: 15px;
+}
+
+.task-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 28px; /* Spacing between tasks */
+}
+
+/* Task Entry Row Formatting */
+.task-item {
+    position: relative;
+    transition: background-color 0.2s ease;
+    padding: 5px 10px 5px 0;
+}
+
+.task-item:hover {
+    background-color: var(--card-hover-bg); /* Subtle hover highlighter */
+}
+
+/* Serial Number positioned in the left margin area */
+.task-serial {
+    position: absolute;
+    left: -115px; /* Centers serial in the 0px - 150px margin */
+    top: 5px;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--margin-red);
+    width: 80px;
+    text-align: right;
+    user-select: none;
+}
+
+.task-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Title Line */
+.task-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.task-title-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Custom Handdrawn Checkbox design */
+.completion-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--ink-blue);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.completion-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -6px;
+    font-size: 1.6rem;
+    color: var(--margin-red);
+    font-weight: bold;
+}
+
+.task-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ink-black);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Task Actions (✎ / 🗑) */
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--ink-gray);
+    transition: color 0.2s ease;
+    padding: 2px 4px;
+}
+
+.edit-btn:hover {
+    color: var(--ink-blue);
+}
+
+.delete-btn:hover {
+    color: var(--margin-red);
+}
+
+/* Stacked Task Details Layout */
+.task-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 34px; /* Align details under name, right of checkbox */
+}
+
+.task-detail-line {
+    font-size: 1.05rem;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px dashed var(--line-blue); /* Detail lines match ruled lines */
+    padding-bottom: 2px;
+}
+
+.detail-label {
+    font-weight: 700;
+    color: var(--ink-gray);
+    min-width: 90px;
+    user-select: none;
+}
+
+.detail-val {
+    color: var(--ink-black);
+    word-break: break-word;
+}
+
+/* Category Highlights formatted as handwritten tag highlights */
+.task-badge-highlight {
+    padding: 0px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.badge-work { background-color: var(--work-highlight); color: var(--work-text); }
+.badge-study { background-color: var(--study-highlight); color: var(--study-text); }
+.badge-personal { background-color: var(--personal-highlight); color: var(--personal-text); }
+.badge-project { background-color: var(--project-highlight); color: var(--project-text); }
+.badge-meeting { background-color: var(--meeting-highlight); color: var(--meeting-text); }
+
+/* Completed crossed-out pen state style */
+.task-item.completed {
+    opacity: 0.65;
+}
+
+.task-item.completed .task-title,
+.task-item.completed .detail-val {
+    text-decoration: line-through;
+    text-decoration-color: var(--margin-red);
+    text-decoration-thickness: 2.5px;
+    color: var(--ink-gray) !important;
+}
+
+/* EMPTY LEDGER STATE */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--ink-gray);
+    border: 2px dashed var(--line-blue);
+    border-radius: 8px;
+    background-color: var(--empty-bg);
+    margin-top: 30px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    animation: bounce 3s ease-in-out infinite;
+}
+
+.empty-state h3 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--ink-black);
+}
+
+.empty-state p {
+    font-size: 1.05rem;
+    max-width: 350px;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ==========================================================================
+   FLOATING TRIGGER INDEX TAB (Yellow post-it style button)
+   ========================================================================== */
+.add-task-trigger-btn {
+    position: fixed;
+    right: 0;
+    border: 2px dashed var(--ink-blue);
+    border-right: none;
+    padding: 18px 10px;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.15);
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 100;
+    writing-mode: vertical-rl; /* Vertical tab lettering */
+    text-orientation: mixed;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease, background-color 0.2s ease, right 0.2s ease, top 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+#open-drawer-btn {
+    top: 200px;
+    background-color: #fef08a; /* Highlighter yellow tab */
+    color: #451a03;
+}
+#open-drawer-btn:hover {
+    background-color: #fde047;
+    transform: scale(1.05);
+}
+
+#open-deleted-btn {
+    top: 330px;
+    background-color: #fecaca; /* Pastel red/rose */
+    color: #7f1d1d;
+    border-color: #ef4444;
+}
+#open-deleted-btn:hover {
+    background-color: #fca5a5;
+    transform: scale(1.05);
+}
+
+#open-index-btn {
+    top: 460px;
+    background-color: #bfdbfe; /* Pastel blue */
+    color: #1e3a8a;
+    border-color: #3b82f6;
+}
+#open-index-btn:hover {
+    background-color: #93c5fd;
+    transform: scale(1.05);
+}
+
+.add-task-trigger-btn .btn-icon {
+    font-size: 1.4rem;
+}
+
+.add-task-trigger-btn .btn-text {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    user-select: none;
+}
+
+/* ==========================================================================
+   ADD TASK SIDE PANEL (Drawer Notebook Page)
+   ========================================================================== */
+.add-task-side-panel {
+    position: fixed;
+    right: -380px;
+    top: 0;
+    bottom: 0;
+    width: 350px;
+    background-color: var(--drawer-bg);
+    /* Red vertical line and light blue horizontal lines inside panel drawer */
+    background-image: 
+        linear-gradient(90deg, transparent 40px, var(--margin-red) 40px, var(--margin-red) 42px, transparent 42px),
+        linear-gradient(var(--line-blue) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 36px;
+    background-position: 0 0, 0 14px;
+    background-attachment: scroll;
+    
+    border-left: 5px solid #eab308; /* Yellow highlighter binding seam */
+    box-shadow: -8px 0 25px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    padding: 40px 20px 40px 55px; /* Offset inputs to the right of drawer's red line */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, background-image 0.3s ease;
+    overflow-y: auto;
+}
+
+.add-task-side-panel.open {
+    right: 0;
+}
+
+.add-task-side-panel .drawer-header {
+    border-bottom: 2px solid #eab308;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.add-task-side-panel .drawer-header h2 {
+    font-family: 'Kalam', cursive;
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+
+/* Drawer Form Group Styling */
+.add-task-side-panel .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 15px;
+}
+
+.add-task-side-panel label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    user-select: none;
+}
+
+.add-task-side-panel input[type="text"],
+.add-task-side-panel input[type="date"],
+.add-task-side-panel select,
+.add-task-side-panel textarea {
+    font-family: 'Kalam', cursive;
+    font-size: 1.1rem;
+    border: none;
+    border-bottom: 1.5px dashed var(--ink-gray);
+    border-radius: 0;
+    background: transparent;
+    padding: 4px 2px;
+    color: var(--ink-black);
+    transition: border-bottom-color 0.2s ease;
+    width: 100%;
+}
+
+.add-task-side-panel input[type="text"]:focus,
+.add-task-side-panel input[type="date"]:focus,
+.add-task-side-panel select:focus,
+.add-task-side-panel textarea:focus {
+    outline: none;
+    border-bottom: 1.5px solid var(--ink-blue);
+}
+
+.add-task-side-panel textarea {
+    resize: vertical;
+}
+
+.add-task-side-panel select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    background-size: 14px;
+}
+
+/* Button UI */
+.drawer-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.primary-btn {
+    background-color: var(--ink-blue);
+    color: #ffffff;
+    border: 1px solid var(--ink-blue);
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-family: 'Kalam', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.primary-btn:hover {
+    background-color: #1e40af;
+    border-color: #1e40af;
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 1.5px solid var(--ink-gray);
+    color: var(--ink-gray);
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-family: 'Kalam', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.secondary-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: var(--ink-black);
+    color: var(--ink-black);
+}
+
+/* ==========================================================================
+   FOOTER SECTION
+   ========================================================================== */
+.app-footer {
+    border-top: 1.5px dashed var(--line-blue);
+    background: transparent;
+    padding: 25px 0;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--ink-gray);
+    font-style: italic;
+    user-select: none;
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT SCALING
+   ========================================================================== */
+@media (max-width: 992px) {
+    .notebook-page-wrapper {
+        padding-left: 140px;
+        padding-right: 30px;
+    }
+    
+    .vertical-margin-line {
+        left: 110px;
+    }
+    
+    .task-serial {
+        left: -90px;
+        width: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .notebook-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+    
+    .top-right-controls {
+        align-items: stretch;
+    }
+    
+    .date-display {
+        align-self: flex-start;
+    }
+    
+    .filter-sorting-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .filter-group-container {
+        justify-content: space-between;
+    }
+    
+    .sorting-container {
+        justify-content: space-between;
+    }
+    
+    .sort-select {
+        flex-grow: 1;
+        max-width: 200px;
+        text-align: right;
+    }
+    
+    .undo-container {
+        justify-content: space-between;
+        margin-top: 5px;
+    }
+    
+    .undo-status-msg {
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 600px) {
+    .vertical-margin-line {
+        left: 60px;
+    }
+    
+    .notebook-page-wrapper {
+        padding-left: 80px;
+        padding-right: 15px;
+        padding-top: 20px;
+    }
+    
+    .task-serial {
+        left: -50px;
+        width: 35px;
+        font-size: 1.15rem;
+    }
+    
+    .task-details {
+        padding-left: 0;
+    }
+    
+    .add-task-side-panel {
+        width: 100%;
+        right: -100%;
+        padding-left: 45px;
+        background-image: 
+            linear-gradient(90deg, transparent 30px, var(--margin-red) 30px, var(--margin-red) 31px, transparent 31px),
+            linear-gradient(var(--line-blue) 1px, transparent 1px);
+        background-size: 100% 100%, 100% 36px;
+    }
+    
+    .add-task-trigger-btn {
+        writing-mode: horizontal-tb;
+        border-radius: 50%;
+        width: 56px;
+        height: 56px;
+        right: 20px;
+        justify-content: center;
+        padding: 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        border-right: 2px dashed var(--ink-blue);
+    }
+    
+    #open-drawer-btn {
+        bottom: 20px;
+        top: auto;
+    }
+    
+    #open-deleted-btn {
+        bottom: 85px;
+        top: auto;
+    }
+    
+    #open-index-btn {
+        bottom: 150px;
+        top: auto;
+    }
+    
+    .add-task-trigger-btn .btn-text {
+        display: none;
+    }
+    
+    .add-task-trigger-btn .btn-icon {
+        font-size: 1.8rem;
+    }
+}
+
+/* ==========================================================================
+   NEW STYLES FOR THEME TOGGLE, BADGES, AND SIDE PANELS
+   ========================================================================== */
+
+/* Theme Toggle Button Style */
+.theme-toggle-btn {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    margin-left: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+.theme-toggle-btn:hover {
+    transform: scale(1.15);
+}
+
+/* Select options styling for Dark/Light theme option readability */
+.add-task-side-panel select option,
+select.search-input option {
+    background-color: var(--select-option-bg);
+    color: var(--ink-black);
+}
+
+/* Calendar picker indicator color adjust for Dark Mode */
+body.dark-theme input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Priority highlights */
+.badge-high { background-color: var(--high-highlight); color: var(--high-text); }
+.badge-medium { background-color: var(--medium-highlight); color: var(--medium-text); }
+.badge-low { background-color: var(--low-highlight); color: var(--low-text); }
+
+/* Optional Description layout */
+.no-desc {
+    font-style: italic;
+    color: var(--ink-gray);
+    font-size: 0.95rem;
+}
+
+/* Deleted Tasks Drawer Styles */
+.deleted-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.deleted-task-item {
+    padding: 12px;
+    border: 1px dashed var(--line-blue);
+    border-radius: 6px;
+    background-color: var(--card-hover-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.deleted-task-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink-black);
+}
+
+.deleted-task-meta {
+    font-size: 0.95rem;
+    color: var(--ink-gray);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.deleted-task-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.deleted-task-actions button {
+    flex: 1;
+    font-family: 'Kalam', cursive;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.deleted-task-actions .restore-btn {
+    background-color: var(--ink-blue);
+    color: #ffffff;
+    border: 1px solid var(--ink-blue);
+}
+.deleted-task-actions .restore-btn:hover {
+    background-color: #2563eb;
+}
+
+.deleted-task-actions .perm-delete-btn {
+    background-color: transparent;
+    border: 1px solid var(--margin-red);
+    color: var(--margin-red);
+}
+.deleted-task-actions .perm-delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Task Index Drawer Styles */
+.index-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.index-task-link {
+    font-size: 1.15rem;
+    color: var(--ink-blue);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-style: dashed;
+    transition: color 0.2s ease;
+    padding: 4px 0;
+}
+
+.index-task-link:hover {
+    color: var(--margin-red);
+}
+
+/* Scroll highlighting pulse */
+.highlight-task {
+    animation: highlight-pulse 2.5s ease;
+}
+@keyframes highlight-pulse {
+    0% { background-color: rgba(254, 240, 138, 0.6); }
+    100% { background-color: transparent; }
+}
+
+body.dark-theme .highlight-task {
+    animation: highlight-pulse-dark 2.5s ease;
+}
+@keyframes highlight-pulse-dark {
+    0% { background-color: rgba(234, 179, 8, 0.35); }
+    100% { background-color: transparent; }
+}
+

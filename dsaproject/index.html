@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TO-DO List</title>
+
+    <!-- Google Fonts: Kalam (Handwriting style) & Inter (Clean backup font) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kalam:wght@300;400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- External JavaScript (Deferred execution to load after HTML parsing) -->
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Fixed Vertical Red Margin Line -->
+    <div class="vertical-margin-line"></div>
+
+    <!-- Main Notebook Page Wrapper -->
+    <div class="notebook-page-wrapper">
+
+        <!-- App Header (Title, Stats & Top Right Search / Controls Area) -->
+        <header class="notebook-header">
+            <!-- Left Side: Title & Statistics -->
+            <div class="header-left">
+                <div class="title-section">
+                    <h1 class="app-title">To-Do List</h1>
+                    <p class="app-subtitle">Daily thoughts, duties, and reminders.</p>
+                </div>
+
+                <!-- Pinned Stats Display (Handwritten style stats header) -->
+                <div class="dashboard-stats" id="dashboard-container">
+                    <div class="stats-row">
+                        <span class="stats-item">Total: <span id="total-tasks-count">0</span></span>
+                        <span class="stats-separator">|</span>
+                        <span class="stats-item text-done">Completed: <span id="completed-tasks-count">0</span></span>
+                        <span class="stats-separator">|</span>
+                        <span class="stats-item text-todo">Pending: <span id="pending-tasks-count">0</span></span>
+                        <span class="stats-separator">|</span>
+                        <span class="stats-item text-rate">Success: <span id="completion-percentage">0%</span></span>
+                    </div>
+                    <!-- Progress Bar (Kept for compatibility with script.js updates) -->
+                    <div class="stats-progress-wrapper">
+                        <span class="progress-label">Progress: </span>
+                        <span id="progress-percentage-text">0%</span>
+                        <div class="progress-line-container">
+                            <div class="progress-line-fill" id="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Date, Search bar, Filters, Sorting & Undo -->
+            <div class="top-right-controls">
+                <!-- Current Date Stamp -->
+                <div class="date-display" id="date-display">
+                    <span class="day-label">Date:</span>
+                    <span id="current-date" class="date-text">Sunday, June 28, 2026</span>
+                    <button type="button" id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Dark/Light Mode">🌙</button>
+                </div>
+
+                <!-- Index Search Fields -->
+                <div class="search-section">
+                    <span class="control-label">Search Tasks:</span>
+                    <div class="search-line-container">
+                        <!-- Search by Name -->
+                        <input type="text" id="search-name" class="search-input" placeholder="Search task...">
+
+                        <!-- Search by Assigned Person -->
+                        <input type="text" id="search-assignee" class="search-input" placeholder="Assignee...">
+
+                        <!-- Search by Category -->
+                        <select id="search-category" class="search-input">
+                            <option value="">All Categories</option>
+                            <option value="Work">Work</option>
+                            <option value="Study">Study</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Project">Project</option>
+                            <option value="Meeting">Meeting</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filters, Sorting & Undo Row -->
+                <div class="filter-sorting-section">
+                    <!-- Status Filters -->
+                    <div class="filter-group-container">
+                        <span class="control-label">Show:</span>
+                        <div class="filter-group">
+                            <button id="filter-all" class="filter-btn active" data-filter="all">All</button>
+                            <button id="filter-completed" class="filter-btn" data-filter="completed">Completed</button>
+                            <button id="filter-pending" class="filter-btn" data-filter="pending">Pending</button>
+                        </div>
+                    </div>
+
+                    <!-- Sorting Controls -->
+                    <div class="sorting-container">
+                        <span class="control-label">Sort:</span>
+                        <select id="sort-select" class="sort-select">
+                            <option value="none" selected>Queue (Default)</option>
+                            <option value="dueDate">Due Date</option>
+                            <option value="category">Category</option>
+                            <option value="status">Status</option>
+                            <option value="name">Task Name</option>
+                            <option value="priority">Priority</option>
+                        </select>
+                    </div>
+
+                    <!-- Undo System Container -->
+                    <div class="undo-container">
+                        <button id="undo-delete-btn" class="undo-btn" disabled title="Restore last deleted task">
+                            <span class="undo-icon">↶</span> Undo
+                        </button>
+                        <span id="undo-status-msg" class="undo-status-msg">No actions to undo</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Active Dynamic Task List Container -->
+        <main class="ledger-body">
+            <div id="task-list" class="task-list-container"></div>
+
+            <!-- Initial Placeholder when list is empty -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <h3>No Tasks at the moment,You can rest!</h3>
+                <p>Click "+ Add Task" tab to write a new entry in your diary.</p>
+            </div>
+        </main>
+
+        <!-- Pinned Footer -->
+        <footer class="app-footer">
+            <p>Task Management System &bull;</p>
+        </footer>
+
+        <!-- Floating "+ Add Task" Trigger Button (Index Tab) -->
+        <button type="button" id="open-drawer-btn" class="add-task-trigger-btn" title="Write a new task entry">
+            <span class="btn-icon">+</span>
+            <span class="btn-text">Add Task</span>
+        </button>
+
+        <!-- Floating "Deleted Tasks" Trigger Button -->
+        <button type="button" id="open-deleted-btn" class="add-task-trigger-btn" title="View deleted tasks">
+            <span class="btn-icon">🗑</span>
+            <span class="btn-text">Deleted Tasks</span>
+        </button>
+
+        <!-- Floating "Index" Trigger Button -->
+        <button type="button" id="open-index-btn" class="add-task-trigger-btn" title="View task index">
+            <span class="btn-icon">📖</span>
+            <span class="btn-text">Index</span>
+        </button>
+
+        <!-- Add/Edit Task Side Panel (Hidden Sliding Drawer) -->
+        <aside id="task-creation-container" class="add-task-side-panel">
+            <div class="drawer-header">
+                <h2 class="section-title">New Entry</h2>
+            </div>
+
+            <form id="task-form" autocomplete="off">
+                <!-- Task Name Input -->
+                <div class="form-group">
+                    <label for="task-name">Task Name *</label>
+                    <input type="text" id="task-name" name="task-name" placeholder="What needs to be done?" required>
+                </div>
+
+                <!-- Task Description Input -->
+                <div class="form-group">
+                    <label for="task-desc">Task Description</label>
+                    <textarea id="task-desc" name="task-desc" rows="4" placeholder="Add some details..."></textarea>
+                </div>
+
+                <!-- Due Date Input -->
+                <div class="form-group">
+                    <label for="task-due-date">Due Date *</label>
+                    <input type="date" id="task-due-date" name="task-due-date" required>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="form-group">
+                    <label for="task-category">Category *</label>
+                    <select id="task-category" name="task-category" required>
+                        <option value="" disabled selected>Select category</option>
+                        <option value="Work">Work</option>
+                        <option value="Study">Study</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Project">Project</option>
+                        <option value="Meeting">Meeting</option>
+                    </select>
+                </div>
+
+                <!-- Priority Dropdown -->
+                <div class="form-group">
+                    <label for="task-priority">Priority</label>
+                    <select id="task-priority" name="task-priority">
+                        <option value="" selected>No Priority</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <!-- Assigned Person Input (Optional) -->
+                <div class="form-group">
+                    <label for="task-assignee">Assigned Person</label>
+                    <input type="text" id="task-assignee" name="task-assignee" placeholder="Who is doing this?">
+                </div>
+
+                <!-- Drawer Controls -->
+                <div class="drawer-actions">
+                    <button type="submit" id="add-task-btn" class="primary-btn">
+                        Add Task
+                    </button>
+                    <button type="button" id="cancel-task-btn" class="secondary-btn">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </aside>
+
+        <!-- Deleted Tasks Side Panel -->
+        <aside id="deleted-tasks-container" class="add-task-side-panel">
+            <div class="drawer-header">
+                <h2 class="section-title">Deleted Tasks</h2>
+            </div>
+            <div id="deleted-tasks-list" class="deleted-list-container">
+                <!-- Dynamically rendered deleted tasks -->
+            </div>
+            <div class="drawer-actions">
+                <button type="button" id="close-deleted-btn" class="secondary-btn">Close</button>
+            </div>
+        </aside>
+
+        <!-- Index Side Panel -->
+        <aside id="index-container" class="add-task-side-panel">
+            <div class="drawer-header">
+                <h2 class="section-title">Task Index</h2>
+            </div>
+            <div id="index-list" class="index-list-container">
+                <!-- Dynamically rendered index of active tasks -->
+            </div>
+            <div class="drawer-actions">
+                <button type="button" id="close-index-btn" class="secondary-btn">Close</button>
+            </div>
+        </aside>
+
+    </div>
+
+</body>
+
+</html>
