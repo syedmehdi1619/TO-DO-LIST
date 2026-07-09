@@ -532,9 +532,10 @@ function startEditTask(id) {
     taskDescInput.value = task.description || '';
     taskDueDateInput.value = task.dueDate;
     taskCategorySelect.value = task.category;
-    if (taskPrioritySelect && task.priority) {
-        taskPrioritySelect.value = task.priority;
+    if (taskPrioritySelect) {
+    taskPrioritySelect.value = task.priority && task.priority !== 'None' ? task.priority: '';
     }
+    
     taskAssigneeInput.value = task.assignedTo === 'Unassigned' ? '' : task.assignedTo;
 
     // Highlight form input side and update action text
@@ -736,7 +737,7 @@ function renderTasks() {
                     <div class="task-detail-line">
                         <span class="detail-label">Priority:</span>
                         <span class="detail-val">
-                            <span class="task-badge-highlight badge-${task.priority ? task.priority.toLowerCase() : 'low'}">${task.priority || 'Low'}</span>
+                           <span class="task-badge-highlight ${task.priority && task.priority !== 'None' ? `badge-${task.priority.toLowerCase()}` : ''}"> ${task.priority || 'No Priority'} </span>
                         </span>
                     </div>
                     <div class="task-detail-line">
