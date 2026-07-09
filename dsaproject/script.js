@@ -344,8 +344,7 @@ function handleFormSubmit(e) {
     const priority = taskPrioritySelect.value;
     const assignee = taskAssigneeInput.value.trim() || 'Unassigned';
 
-    // Description is no longer required
-    if (!name || !dueDate || !category || !priority) {
+    if (!name || !dueDate || !category) {
         alert("Please fill in all required fields marked with *");
         return;
     }
@@ -355,7 +354,7 @@ function handleFormSubmit(e) {
         updateExistingTask(editTaskId, { name, description, dueDate, category, priority, assignee });
     } else {
         // --- CREATION MODE: Create New Task ---
-        createNewTask(name, description, dueDate, category, priority, assignee);
+        createNewTask(name, description, dueDate, category, priority: priority || 'None', assignee);
     }
 
     // Sync to Storage and Update UI
@@ -368,7 +367,7 @@ function handleFormSubmit(e) {
 }
 
 // Create Task logic
-function createNewTask(name, description, dueDate, category, priority, assignee) {
+function createNewTask(name, description, dueDate, category, priority: priority || 'None' , assignee) {
     // Generate a unique ID using timestamp
     const id = Date.now().toString();
 
@@ -379,7 +378,7 @@ function createNewTask(name, description, dueDate, category, priority, assignee)
         description,
         dueDate,
         category,
-        priority,
+        priority: priority || 'None',
         assignedTo: assignee,
         completed: false
     };
