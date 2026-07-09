@@ -378,7 +378,7 @@ function createNewTask(name, description, dueDate, category, priority, assignee)
         description,
         dueDate,
         category,
-        priority,
+        priority: priority || 'None',
         assignedTo: assignee,
         completed: false
     };
