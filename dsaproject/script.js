@@ -354,7 +354,7 @@ function handleFormSubmit(e) {
         updateExistingTask(editTaskId, { name, description, dueDate, category, priority, assignee });
     } else {
         // --- CREATION MODE: Create New Task ---
-        createNewTask(name, description, dueDate, category, priority: priority || 'None', assignee);
+        createNewTask(name, description, dueDate, category, priority, assignee);
     }
 
     // Sync to Storage and Update UI
@@ -367,7 +367,7 @@ function handleFormSubmit(e) {
 }
 
 // Create Task logic
-function createNewTask(name, description, dueDate, category, priority: priority || 'None' , assignee) {
+function createNewTask(name, description, dueDate, category, priority, assignee) {
     // Generate a unique ID using timestamp
     const id = Date.now().toString();
 
@@ -378,7 +378,7 @@ function createNewTask(name, description, dueDate, category, priority: priority 
         description,
         dueDate,
         category,
-        priority: priority || 'None',
+        priority,
         assignedTo: assignee,
         completed: false
     };
