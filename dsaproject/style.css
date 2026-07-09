@@ -1011,8 +1011,7 @@ select.search-input {
 }
 
 /* Select options styling for Dark/Light theme option readability */
-.add-task-side-panel select option,
-select.search-input option {
+select option {
     background-color: var(--select-option-bg);
     color: var(--ink-black);
 }
