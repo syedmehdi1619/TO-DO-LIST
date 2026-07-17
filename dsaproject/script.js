@@ -1,11 +1,12 @@
-
-
-// Array Implementation
-// Used as the primary sequential list to store, map, filter, and render tasks.
 let tasks = [];
-
-// Hash Table Implementation
 let taskDictionary = {};
+let deletedStack = [];
+let deletedTasks = [];
+
+let currentFilter = 'all';
+let currentSort = 'none';
+let editTaskId = null;
+let currentTheme = 'light';
 
 // Custom Hash Table Class for O(1) Search Indexing
 class HashTable {
@@ -24,9 +25,7 @@ class HashTable {
 
     insert(key, task) {
         const cleanKey = key.trim().toLowerCase();
-        const index = this._hash(cleanKey);
-        const bucket = this.buckets[index];
-
+        const bucket = this.buckets[this._hash(cleanKey)];
         const existingPair = bucket.find(pair => pair.key === cleanKey);
         if (existingPair) {
             if (!existingPair.value.some(t => t.id === task.id)) {
@@ -39,9 +38,7 @@ class HashTable {
 
     remove(key, taskId) {
         const cleanKey = key.trim().toLowerCase();
-        const index = this._hash(cleanKey);
-        const bucket = this.buckets[index];
-
+        const bucket = this.buckets[this._hash(cleanKey)];
         const pairIndex = bucket.findIndex(pair => pair.key === cleanKey);
         if (pairIndex !== -1) {
             const pair = bucket[pairIndex];
@@ -54,179 +51,126 @@ class HashTable {
 
     get(key) {
         const cleanKey = key.trim().toLowerCase();
-        const index = this._hash(cleanKey);
-        const bucket = this.buckets[index];
-
-        const pair = bucket.find(pair => pair.key === cleanKey);
+        const pair = this.buckets[this._hash(cleanKey)].find(pair => pair.key === cleanKey);
         return pair ? pair.value : [];
     }
 }
 
-// Instantiate search table
 let taskSearchTable = new HashTable();
 
-// Stack Implementation (LIFO - Last In First Out)
-let deletedStack = [];
-
-// Deleted tasks array (for displaying in the Deleted Tasks Drawer)
-let deletedTasks = [];
-
-// Application State Variables
-let currentFilter = 'all';       // Tracks filter tab: 'all', 'completed', 'pending'
-let currentSort = 'none';        // Tracks sorting selection: 'none', 'dueDate', 'category', 'status', 'name', 'priority'
-let editTaskId = null;           // Tracks the ID of the task currently being edited (null = creation mode)
-let currentTheme = 'light';      // Tracks current theme: 'light' or 'dark'
-
 // DOM Elements Cache
-const taskForm = document.getElementById('task-form');
-const taskNameInput = document.getElementById('task-name');
-const taskDescInput = document.getElementById('task-desc');
-const taskDueDateInput = document.getElementById('task-due-date');
-const taskCategorySelect = document.getElementById('task-category');
-const taskPrioritySelect = document.getElementById('task-priority');
-const taskAssigneeInput = document.getElementById('task-assignee');
-const addTaskBtn = document.getElementById('add-task-btn');
+const $ = id => document.getElementById(id);
+const taskForm = $('task-form');
+const taskNameInput = $('task-name');
+const taskDescInput = $('task-desc');
+const taskDueDateInput = $('task-due-date');
+const taskCategorySelect = $('task-category');
+const taskPrioritySelect = $('task-priority');
+const taskAssigneeInput = $('task-assignee');
+const addTaskBtn = $('add-task-btn');
 
-const totalTasksCount = document.getElementById('total-tasks-count');
-const completedTasksCount = document.getElementById('completed-tasks-count');
-const pendingTasksCount = document.getElementById('pending-tasks-count');
-const completionPercentage = document.getElementById('completion-percentage');
-const progressBarFill = document.getElementById('progress-bar-fill');
-const progressPercentageText = document.getElementById('progress-percentage-text');
+const totalTasksCount = $('total-tasks-count');
+const completedTasksCount = $('completed-tasks-count');
+const pendingTasksCount = $('pending-tasks-count');
+const completionPercentage = $('completion-percentage');
+const progressBarFill = $('progress-bar-fill');
+const progressPercentageText = $('progress-percentage-text');
 
-const searchNameInput = document.getElementById('search-name');
-const searchCategorySelect = document.getElementById('search-category');
-const searchAssigneeInput = document.getElementById('search-assignee');
+const searchNameInput = $('search-name');
+const searchCategorySelect = $('search-category');
+const searchAssigneeInput = $('search-assignee');
 
 const filterBtns = document.querySelectorAll('.filter-btn');
-const sortSelect = document.getElementById('sort-select');
+const sortSelect = $('sort-select');
 
-const undoDeleteBtn = document.getElementById('undo-delete-btn');
-const undoStatusMsg = document.getElementById('undo-status-msg');
-const taskListContainer = document.getElementById('task-list');
-const emptyStateDiv = document.getElementById('empty-state');
-const currentDateSpan = document.getElementById('current-date');
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const undoDeleteBtn = $('undo-delete-btn');
+const undoStatusMsg = $('undo-status-msg');
+const taskListContainer = $('task-list');
+const emptyStateDiv = $('empty-state');
+const currentDateSpan = $('current-date');
+const themeToggleBtn = $('theme-toggle-btn');
 
-// Drawer Elements Cache
-const sidePanel = document.getElementById('task-creation-container');
-const openDrawerBtn = document.getElementById('open-drawer-btn');
-const cancelDrawerBtn = document.getElementById('cancel-task-btn');
+const sidePanel = $('task-creation-container');
+const openDrawerBtn = $('open-drawer-btn');
+const cancelDrawerBtn = $('cancel-task-btn');
 
-// New Drawers Elements Cache
-const deletedSidePanel = document.getElementById('deleted-tasks-container');
-const openDeletedBtn = document.getElementById('open-deleted-btn');
-const closeDeletedBtn = document.getElementById('close-deleted-btn');
-const deletedTasksListContainer = document.getElementById('deleted-tasks-list');
+const deletedSidePanel = $('deleted-tasks-container');
+const openDeletedBtn = $('open-deleted-btn');
+const closeDeletedBtn = $('close-deleted-btn');
+const deletedTasksListContainer = $('deleted-tasks-list');
 
-const indexSidePanel = document.getElementById('index-container');
-const openIndexBtn = document.getElementById('open-index-btn');
-const closeIndexBtn = document.getElementById('close-index-btn');
-const indexListContainer = document.getElementById('index-list');
-
+const indexSidePanel = $('index-container');
+const openIndexBtn = $('open-index-btn');
+const closeIndexBtn = $('close-index-btn');
+const indexListContainer = $('index-list');
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Display Current Date
     displayCurrentDate();
-
-    // 2. Initialize and Apply Saved Theme
     initializeTheme();
-
-    // 3. Load Data from Local Storage
     loadTasksFromLocalStorage();
     loadDeletedTasksFromLocalStorage();
-
-    // 4. Bind Event Listeners
     setupEventListeners();
-
-    // 5. Refresh Dashboard and Render
     updateDashboard();
     renderTasks();
 });
 
-// Display today's date in a friendly notebook header style
 function displayCurrentDate() {
     const today = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     currentDateSpan.textContent = today.toLocaleDateString('en-US', options);
 }
 
-
 function setupEventListeners() {
-    // Task Form Submit (Creates or Updates a task)
     taskForm.addEventListener('submit', handleFormSubmit);
 
-    // Instant Search Inputs (Updates layout dynamically on user keypress/change)
     searchNameInput.addEventListener('input', renderTasks);
     searchCategorySelect.addEventListener('change', renderTasks);
     searchAssigneeInput.addEventListener('input', renderTasks);
 
-    // Sorting Dropdown Trigger
     sortSelect.addEventListener('change', (e) => {
         currentSort = e.target.value;
         renderTasks();
     });
 
-    // Filtering Tabs Trigger
     filterBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // Remove active class from all filters and apply to the clicked one
+        btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
             currentFilter = btn.getAttribute('data-filter');
             renderTasks();
         });
     });
 
-    // Undo Actions Trigger
     undoDeleteBtn.addEventListener('click', undoDeleteTask);
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
 
-    // Theme Toggle Trigger
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', toggleTheme);
-    }
+    // Bind drawer panel controls
+    if (openDrawerBtn) openDrawerBtn.addEventListener('click', () => openDrawerPanel('task-creation-container'));
+    if (cancelDrawerBtn) cancelDrawerBtn.addEventListener('click', () => closeDrawerPanel('task-creation-container'));
 
-    // Drawer toggles
-    if (openDrawerBtn) {
-        openDrawerBtn.addEventListener('click', () => openDrawerPanel('task-creation-container'));
-    }
-    if (cancelDrawerBtn) {
-        cancelDrawerBtn.addEventListener('click', () => closeDrawerPanel('task-creation-container'));
-    }
-
-    // Deleted Tasks Drawer triggers
     if (openDeletedBtn) {
         openDeletedBtn.addEventListener('click', () => {
             renderDeletedTasks();
             openDrawerPanel('deleted-tasks-container');
         });
     }
-    if (closeDeletedBtn) {
-        closeDeletedBtn.addEventListener('click', () => closeDrawerPanel('deleted-tasks-container'));
-    }
+    if (closeDeletedBtn) closeDeletedBtn.addEventListener('click', () => closeDrawerPanel('deleted-tasks-container'));
 
-    // Index Drawer triggers
     if (openIndexBtn) {
         openIndexBtn.addEventListener('click', () => {
             renderIndex();
             openDrawerPanel('index-container');
         });
     }
-    if (closeIndexBtn) {
-        closeIndexBtn.addEventListener('click', () => closeDrawerPanel('index-container'));
-    }
+    if (closeIndexBtn) closeIndexBtn.addEventListener('click', () => closeDrawerPanel('index-container'));
 }
 
-// 4. DRAWER MANAGEMENT & THEME SYSTEM
-
 function openDrawerPanel(drawerId) {
-    // Close any other open drawers first
     document.querySelectorAll('.add-task-side-panel').forEach(panel => {
         panel.classList.remove('open');
     });
 
-    const panel = document.getElementById(drawerId);
+    const panel = $(drawerId);
     if (panel) {
         panel.classList.add('open');
         if (drawerId === 'task-creation-container') {
@@ -238,7 +182,7 @@ function openDrawerPanel(drawerId) {
 }
 
 function closeDrawerPanel(drawerId) {
-    const panel = document.getElementById(drawerId);
+    const panel = $(drawerId);
     if (panel) {
         panel.classList.remove('open');
     }
@@ -248,10 +192,8 @@ function closeDrawerPanel(drawerId) {
     }
 }
 
-// Theme handling
 function initializeTheme() {
-    const savedTheme = localStorage.getItem('tms_theme') || 'light';
-    currentTheme = savedTheme;
+    currentTheme = localStorage.getItem('tms_theme') || 'light';
     applyTheme(currentTheme);
 }
 
@@ -271,74 +213,42 @@ function applyTheme(theme) {
     }
 }
 
-// 5. TASK CREATION AND UPDATE LOGIC
-
-// Search table indexing helpers
+// Helper to generate search index keys for tasks
 function getTaskSearchKeys(task) {
     const keys = new Set();
+    const cleanWords = str => str ? str.trim().toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, '')).filter(Boolean) : [];
 
-    // Index full name/title
     if (task.name) {
-        const fullName = task.name.trim().toLowerCase();
-        if (fullName) keys.add("name:" + fullName);
-
-        // Index individual words in title
-        const nameWords = fullName.split(/\s+/);
-        nameWords.forEach(word => {
-            const cleanWord = word.replace(/[^a-z0-9]/g, '');
-            if (cleanWord) keys.add("word:" + cleanWord);
-        });
+        keys.add("name:" + task.name.trim().toLowerCase());
+        cleanWords(task.name).forEach(w => keys.add("word:" + w));
     }
-
-    // Index description words if it exists
     if (task.description) {
-        const desc = task.description.trim().toLowerCase();
-        const descWords = desc.split(/\s+/);
-        descWords.forEach(word => {
-            const cleanWord = word.replace(/[^a-z0-9]/g, '');
-            if (cleanWord) keys.add("word:" + cleanWord);
-        });
+        cleanWords(task.description).forEach(w => keys.add("word:" + w));
     }
-
-    // Index category
     if (task.category) {
         keys.add("category:" + task.category.trim().toLowerCase());
     }
-
-    // Index assignee
     if (task.assignedTo && task.assignedTo !== 'Unassigned') {
         const assignee = task.assignedTo.trim().toLowerCase();
         keys.add("assignee:" + assignee);
-
-        const assigneeWords = assignee.split(/\s+/);
-        assigneeWords.forEach(word => {
-            const cleanWord = word.replace(/[^a-z0-9]/g, '');
-            if (cleanWord) keys.add("assignee_word:" + cleanWord);
-        });
+        cleanWords(task.assignedTo).forEach(w => keys.add("assignee_word:" + w));
     }
-
     return Array.from(keys);
 }
 
 function insertTaskIntoSearchTable(task) {
-    const keys = getTaskSearchKeys(task);
-    keys.forEach(key => {
-        taskSearchTable.insert(key, task);
-    });
+    getTaskSearchKeys(task).forEach(key => taskSearchTable.insert(key, task));
 }
 
 function removeTaskFromSearchTable(task) {
-    const keys = getTaskSearchKeys(task);
-    keys.forEach(key => {
-        taskSearchTable.remove(key, task.id);
-    });
+    getTaskSearchKeys(task).forEach(key => taskSearchTable.remove(key, task.id));
 }
 
 function handleFormSubmit(e) {
     e.preventDefault();
 
     const name = taskNameInput.value.trim();
-    const description = taskDescInput.value.trim(); // Can be empty now
+    const description = taskDescInput.value.trim();
     const dueDate = taskDueDateInput.value;
     const category = taskCategorySelect.value;
     const priority = taskPrioritySelect.value;
@@ -350,30 +260,20 @@ function handleFormSubmit(e) {
     }
 
     if (editTaskId) {
-        // --- EDIT MODE: Updating Existing Task ---
         updateExistingTask(editTaskId, { name, description, dueDate, category, priority, assignee });
     } else {
-        // --- CREATION MODE: Create New Task ---
         createNewTask(name, description, dueDate, category, priority, assignee);
     }
 
-    // Sync to Storage and Update UI
     saveTasksToLocalStorage();
     updateDashboard();
     renderTasks();
-
-    // Close Drawer panel
     closeDrawerPanel('task-creation-container');
 }
 
-// Create Task logic
 function createNewTask(name, description, dueDate, category, priority, assignee) {
-    // Generate a unique ID using timestamp
-    const id = Date.now().toString();
-
-    // Create Task Object
     const task = {
-        id,
+        id: Date.now().toString(),
         name,
         description,
         dueDate,
@@ -383,39 +283,25 @@ function createNewTask(name, description, dueDate, category, priority, assignee)
         completed: false
     };
 
-    // Store in Array
     tasks.push(task);
-
-    // Store in Hash Table for O(1) lookups
-    taskDictionary[id] = task;
-
-    // Index in O(1) search table
+    taskDictionary[task.id] = task;
     insertTaskIntoSearchTable(task);
 }
 
-// Update Task logic
 function updateExistingTask(id, fields) {
-    // Lookup task in Hash Table in O(1) time
     const task = taskDictionary[id];
-
     if (task) {
-        // Remove old search keys from the index
         removeTaskFromSearchTable(task);
-
-        // Update fields
         task.name = fields.name;
         task.description = fields.description;
         task.dueDate = fields.dueDate;
         task.category = fields.category;
         task.priority = fields.priority;
         task.assignedTo = fields.assignee;
-
-        // Insert new search keys into the index
         insertTaskIntoSearchTable(task);
     }
 }
 
-// Cancel or reset edit visual styling
 function resetEditMode() {
     editTaskId = null;
     addTaskBtn.textContent = 'Add Task';
@@ -423,319 +309,211 @@ function resetEditMode() {
     if (taskPrioritySelect) taskPrioritySelect.value = '';
 }
 
-
 function toggleTaskCompletion(id) {
-    // Look up in O(1) Hash Table instead of searching array
     const task = taskDictionary[id];
     if (task) {
         task.completed = !task.completed;
-
         saveTasksToLocalStorage();
         updateDashboard();
         renderTasks();
     }
 }
 
-// 7. DELETE & STACK UNDO SYSTEM
-
+// Stack-based task deletion and restoration system
 function deleteTask(id) {
-    // 1. Locate and retrieve task index in the array
     const taskIndex = tasks.findIndex(t => t.id === id);
     if (taskIndex === -1) return;
 
     const taskToDelete = tasks[taskIndex];
+    const action = { task: taskToDelete, index: taskIndex };
 
-    const action = {
-        task: taskToDelete,
-        index: taskIndex
-    };
-
-    // Stack Implementation (LIFO)
     deletedStack.push(action);
-
-    // Store in deletedTasks list for drawer, saving original index
     deletedTasks.push(action);
     saveDeletedTasksToLocalStorage();
 
-    // 2. Remove from Array
     tasks.splice(taskIndex, 1);
-
-    // 3. Remove from Hash Table Dictionary
     delete taskDictionary[id];
-
-    // 4. Remove from Search Index Table
     removeTaskFromSearchTable(taskToDelete);
 
-    // Update Undo UI status
     updateUndoUI();
-
-    // Sync to Storage and Update UI
     saveTasksToLocalStorage();
+    updateDashboard();
+    renderTasks();
+}
+
+function restoreTask(action) {
+    const restoredTask = action.task;
+    tasks.splice(action.index, 0, restoredTask);
+    taskDictionary[restoredTask.id] = restoredTask;
+    insertTaskIntoSearchTable(restoredTask);
+
+    deletedTasks = deletedTasks.filter(item => item.task.id !== restoredTask.id);
+    deletedStack = deletedStack.filter(item => item.task.id !== restoredTask.id);
+
+    saveDeletedTasksToLocalStorage();
+    saveTasksToLocalStorage();
+    updateUndoUI();
     updateDashboard();
     renderTasks();
 }
 
 function undoDeleteTask() {
-    // Check if the stack contains items
     if (deletedStack.length === 0) return;
-
-    // Pop the last deleted task
-    const poppedAction = deletedStack.pop();
-    const restoredTask = poppedAction.task;
-    const restoredIndex = poppedAction.index;
-
-    // 1. Restore task to its original index in the Array
-    tasks.splice(restoredIndex, 0, restoredTask);
-
-    // 2. Restore task in the Hash Table Dictionary
-    taskDictionary[restoredTask.id] = restoredTask;
-
-    // 3. Restore in Search Index Table
-    insertTaskIntoSearchTable(restoredTask);
-
-    // 4. Remove from deletedTasks array
-    deletedTasks = deletedTasks.filter(item => item.task.id !== restoredTask.id);
-    saveDeletedTasksToLocalStorage();
-
-    // Update Undo UI status
-    updateUndoUI();
-
-    // Sync and refresh displays
-    saveTasksToLocalStorage();
-    updateDashboard();
-    renderTasks();
+    restoreTask(deletedStack.pop());
 }
 
-// Refresh status of the Undo Button
 function updateUndoUI() {
     if (deletedStack.length > 0) {
-        const lastDeleted = deletedStack[deletedStack.length - 1].task;
         undoDeleteBtn.disabled = false;
-        undoStatusMsg.textContent = `Undo delete: "${lastDeleted.name}"`;
+        undoStatusMsg.textContent = `Undo delete: "${deletedStack[deletedStack.length - 1].task.name}"`;
     } else {
         undoDeleteBtn.disabled = true;
         undoStatusMsg.textContent = "No actions to undo";
     }
 }
 
-// Trigger Edit Mode (Pre-populates the input form fields)
 function startEditTask(id) {
-    // Quick lookup in dictionary
     const task = taskDictionary[id];
     if (!task) return;
 
-    // Save ID of edited item
     editTaskId = id;
-
-    // Populate UI inputs
     taskNameInput.value = task.name;
     taskDescInput.value = task.description || '';
     taskDueDateInput.value = task.dueDate;
     taskCategorySelect.value = task.category;
     if (taskPrioritySelect) {
-    taskPrioritySelect.value = task.priority && task.priority !== 'None' ? task.priority: '';
+        taskPrioritySelect.value = task.priority && task.priority !== 'None' ? task.priority : '';
     }
-    
     taskAssigneeInput.value = task.assignedTo === 'Unassigned' ? '' : task.assignedTo;
 
-    // Highlight form input side and update action text
     addTaskBtn.textContent = 'Update Task';
     addTaskBtn.classList.add('update-mode');
-
-    // Open drawer sliding panel
     openDrawerPanel('task-creation-container');
 }
 
-
-// 8. SEARCH ALGORITHM (Hash Table Search Index)
+// Search algorithm using O(1) custom Hash Table search index keys
 function performHashTableSearch(nameQuery, categoryQuery, assigneeQuery) {
     let matchedTasks = null;
 
-    // Intersection helper that compares tasks by unique id
-    const intersect = (currentSet, newTasks) => {
-        if (currentSet === null) {
-            return newTasks;
-        }
-        const newIds = new Set(newTasks.map(t => t.id));
-        return currentSet.filter(t => newIds.has(t.id));
+    const intersect = (curr, next) => {
+        if (curr === null) return next;
+        const nextIds = new Set(next.map(t => t.id));
+        return curr.filter(t => nextIds.has(t.id));
     };
 
-    // 1. Search by Name (Exact or Word matches)
     if (nameQuery) {
-        const cleanQuery = nameQuery.trim().toLowerCase();
-
-        // Exact name lookup
-        const exactResults = taskSearchTable.get("name:" + cleanQuery);
-
-        // Word-by-word intersection lookup
-        const words = cleanQuery.split(/\s+/);
+        const q = nameQuery.trim().toLowerCase();
+        const exact = taskSearchTable.get("name:" + q);
         let wordResults = null;
-        for (const word of words) {
-            const cleanWord = word.replace(/[^a-z0-9]/g, '');
-            if (cleanWord) {
-                const tasksForWord = taskSearchTable.get("word:" + cleanWord);
-                wordResults = intersect(wordResults, tasksForWord);
-            }
-        }
-        wordResults = wordResults || [];
 
-        // Combine (union) exact results and word results
-        const combinedResults = [...exactResults];
-        const exactIds = new Set(exactResults.map(t => t.id));
-        wordResults.forEach(t => {
-            if (!exactIds.has(t.id)) {
-                combinedResults.push(t);
-            }
+        q.split(/\s+/).forEach(word => {
+            const w = word.replace(/[^a-z0-9]/g, '');
+            if (w) wordResults = intersect(wordResults, taskSearchTable.get("word:" + w));
         });
 
-        matchedTasks = intersect(matchedTasks, combinedResults);
+        const combined = [...exact];
+        const exactIds = new Set(exact.map(t => t.id));
+        (wordResults || []).forEach(t => {
+            if (!exactIds.has(t.id)) combined.push(t);
+        });
+
+        matchedTasks = intersect(matchedTasks, combined);
     }
 
-    // 2. Search by Category
     if (categoryQuery) {
         const categoryTasks = taskSearchTable.get("category:" + categoryQuery.trim().toLowerCase());
         matchedTasks = intersect(matchedTasks, categoryTasks);
     }
 
-    // 3. Search by Assignee
     if (assigneeQuery) {
-        const cleanAssignee = assigneeQuery.trim().toLowerCase();
-        
-        // Exact assignee lookup
-        const exactAssigneeResults = taskSearchTable.get("assignee:" + cleanAssignee);
-
-        // Word-by-word intersection lookup
-        const words = cleanAssignee.split(/\s+/);
+        const q = assigneeQuery.trim().toLowerCase();
+        const exact = taskSearchTable.get("assignee:" + q);
         let wordResults = null;
-        for (const word of words) {
-            const cleanWord = word.replace(/[^a-z0-9]/g, '');
-            if (cleanWord) {
-                const tasksForWord = taskSearchTable.get("assignee_word:" + cleanWord);
-                wordResults = intersect(wordResults, tasksForWord);
-            }
-        }
-        wordResults = wordResults || [];
 
-        // Combine (union) exact results and word results
-        const combinedAssigneeResults = [...exactAssigneeResults];
-        const exactIds = new Set(exactAssigneeResults.map(t => t.id));
-        wordResults.forEach(t => {
-            if (!exactIds.has(t.id)) {
-                combinedAssigneeResults.push(t);
-            }
+        q.split(/\s+/).forEach(word => {
+            const w = word.replace(/[^a-z0-9]/g, '');
+            if (w) wordResults = intersect(wordResults, taskSearchTable.get("assignee_word:" + w));
         });
 
-        matchedTasks = intersect(matchedTasks, combinedAssigneeResults);
+        const combined = [...exact];
+        const exactIds = new Set(exact.map(t => t.id));
+        (wordResults || []).forEach(t => {
+            if (!exactIds.has(t.id)) combined.push(t);
+        });
+
+        matchedTasks = intersect(matchedTasks, combined);
     }
 
-    // If no search filter is applied, return all active tasks (FIFO Queue order)
-    if (matchedTasks === null) {
-        return [...tasks];
-    }
+    if (matchedTasks === null) return [...tasks];
 
-    // Intersected results need to preserve the original FIFO insertion order (by checking tasks order)
     const matchedIds = new Set(matchedTasks.map(t => t.id));
     return tasks.filter(t => matchedIds.has(t.id));
 }
 
-
-// 9. SORTING ALGORITHM (Merge Sort Implementation)
+// Sorting Algorithm: Merge Sort Implementation
+const comparators = {
+    dueDate: (a, b) => a.dueDate.localeCompare(b.dueDate),
+    category: (a, b) => a.category.localeCompare(b.category),
+    status: (a, b) => a.completed - b.completed,
+    name: (a, b) => a.name.localeCompare(b.name),
+    priority: (a, b) => {
+        const weights = { high: 3, medium: 2, low: 1 };
+        return (weights[b.priority?.toLowerCase()] || 0) - (weights[a.priority?.toLowerCase()] || 0);
+    }
+};
 
 function performMergeSort(arr, criterion) {
-    if (arr.length <= 1) {
-        return arr;
-    }
-
+    if (arr.length <= 1) return arr;
     const mid = Math.floor(arr.length / 2);
-    const left = arr.slice(0, mid);
-    const right = arr.slice(mid);
-
-    return merge(performMergeSort(left, criterion), performMergeSort(right, criterion), criterion);
+    return merge(performMergeSort(arr.slice(0, mid), criterion), performMergeSort(arr.slice(mid), criterion), criterion);
 }
 
 function merge(left, right, criterion) {
     const result = [];
-    let leftIndex = 0;
-    let rightIndex = 0;
-
-    while (leftIndex < left.length && rightIndex < right.length) {
-        let shouldSwap = false;
-
-        if (criterion === 'dueDate') {
-            shouldSwap = left[leftIndex].dueDate > right[rightIndex].dueDate;
-        }
-        else if (criterion === 'category') {
-            shouldSwap = left[leftIndex].category.localeCompare(right[rightIndex].category) > 0;
-        }
-        else if (criterion === 'status') {
-            // Pending (false) first, Completed (true) last
-            shouldSwap = left[leftIndex].completed && !right[rightIndex].completed;
-        }
-        else if (criterion === 'name') {
-            shouldSwap = left[leftIndex].name.localeCompare(right[rightIndex].name) > 0;
-        }
-        else if (criterion === 'priority') {
-            const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
-            const leftWeight = priorityWeight[left[leftIndex].priority?.toLowerCase()] || 0;
-            const rightWeight = priorityWeight[right[rightIndex].priority?.toLowerCase()] || 0;
-            shouldSwap = leftWeight < rightWeight; // Higher priority first
-        }
-
-        if (!shouldSwap) {
-            result.push(left[leftIndex]);
-            leftIndex++;
+    let l = 0, r = 0;
+    const compare = comparators[criterion];
+    while (l < left.length && r < right.length) {
+        if (compare(left[l], right[r]) <= 0) {
+            result.push(left[l++]);
         } else {
-            result.push(right[rightIndex]);
-            rightIndex++;
+            result.push(right[r++]);
         }
     }
-
-    return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
+    return [...result, ...left.slice(l), ...right.slice(r)];
 }
 
-// 10. DYNAMIC RENDERING PROCESS (Ruled Page Layout Rows)
-
 function renderTasks() {
-    // Clear list display area
     taskListContainer.innerHTML = '';
 
-    // 1. Search tasks using the O(1) Hash Table
     const nameQuery = searchNameInput.value.trim();
     const categoryQuery = searchCategorySelect.value;
     const assigneeQuery = searchAssigneeInput.value.trim();
     let filteredList = performHashTableSearch(nameQuery, categoryQuery, assigneeQuery);
 
-    // 2. Apply Filtering by Status (All / Completed / Pending)
     filteredList = filteredList.filter(task => {
         if (currentFilter === 'completed') return task.completed;
         if (currentFilter === 'pending') return !task.completed;
-        return true; // 'all'
+        return true;
     });
 
-    // 3. Apply Sorting using the recursive Merge Sort Algorithm ONLY if a sort option is selected
     if (currentSort !== 'none') {
         filteredList = performMergeSort(filteredList, currentSort);
     }
 
-    // 4. Check for Empty Lists
     if (filteredList.length === 0) {
         emptyStateDiv.style.display = 'flex';
         return;
-    } else {
-        emptyStateDiv.style.display = 'none';
     }
+    emptyStateDiv.style.display = 'none';
 
-    // 5. Build and Inject HTML Notebook List Items
     filteredList.forEach((task, index) => {
         const item = document.createElement('div');
         item.className = `task-item ${task.completed ? 'completed' : ''}`;
         item.setAttribute('data-category', task.category);
         item.id = `task-card-${task.id}`;
 
-        const serialNum = index + 1;
-
         item.innerHTML = `
-            <div class="task-serial">${serialNum}</div>
+            <div class="task-serial">${index + 1}</div>
             <div class="task-main">
                 <div class="task-title-row">
                     <div class="task-title-checkbox">
@@ -756,7 +534,7 @@ function renderTasks() {
                     <div class="task-detail-line">
                         <span class="detail-label">Priority:</span>
                         <span class="detail-val">
-                           <span class="task-badge-highlight ${task.priority && task.priority !== 'None' ? `badge-${task.priority.toLowerCase()}` : ''}"> ${task.priority || 'No Priority'} </span>
+                           <span class="task-badge-highlight ${task.priority && task.priority !== 'None' ? `badge-${task.priority.toLowerCase()}` : ''}">${task.priority || 'No Priority'}</span>
                         </span>
                     </div>
                     <div class="task-detail-line">
@@ -778,12 +556,10 @@ function renderTasks() {
                 </div>
             </div>
         `;
-
         taskListContainer.appendChild(item);
     });
 }
 
-// Utility to escape HTML to prevent XSS vulnerability injects
 function escapeHTML(str) {
     return str
         .replace(/&/g, "&amp;")
@@ -793,82 +569,57 @@ function escapeHTML(str) {
         .replace(/'/g, "&#039;");
 }
 
-// 11. PRODUCTIVITY TRACKER & ANALYTICS
-
 function updateDashboard() {
     const total = tasks.length;
-    // Count matches using Array filters
     const completed = tasks.filter(t => t.completed).length;
     const pending = total - completed;
-
-    // Percentage calculation (Handles division by zero case)
     const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-    // Update text content values
     totalTasksCount.textContent = total;
     completedTasksCount.textContent = completed;
     pendingTasksCount.textContent = pending;
     completionPercentage.textContent = `${percentage}%`;
     progressPercentageText.textContent = `${percentage}%`;
-
-    // Update visual progress fill bar width
     progressBarFill.style.width = `${percentage}%`;
 }
 
-// 12. LOCAL STORAGE PERSISTENCE
-
-// Saves the active task list into the user's web browser local memory.
+// Local Storage Persistence
 function saveTasksToLocalStorage() {
     localStorage.setItem('tms_tasks', JSON.stringify(tasks));
 }
 
-// Loads tasks from the browser storage and populates the Dictionary, Array, and Search Index
 function loadTasksFromLocalStorage() {
-    const dataString = localStorage.getItem('tms_tasks');
-
-    if (dataString) {
-        try {
-            tasks = JSON.parse(dataString);
-
-            // Rebuild O(1) Hash Table dictionary and search table from array values
-            taskDictionary = {};
-            taskSearchTable = new HashTable();
-            tasks.forEach(task => {
-                taskDictionary[task.id] = task;
-                insertTaskIntoSearchTable(task);
-            });
-        } catch (e) {
-            console.error("Error reading LocalStorage tasks database: ", e);
-            tasks = [];
-            taskDictionary = {};
-            taskSearchTable = new HashTable();
-        }
+    try {
+        tasks = JSON.parse(localStorage.getItem('tms_tasks')) || [];
+        taskDictionary = {};
+        taskSearchTable = new HashTable();
+        tasks.forEach(task => {
+            taskDictionary[task.id] = task;
+            insertTaskIntoSearchTable(task);
+        });
+    } catch (e) {
+        console.error("Error reading LocalStorage tasks database: ", e);
+        tasks = [];
+        taskDictionary = {};
+        taskSearchTable = new HashTable();
     }
 }
 
-// Save deleted tasks to Local Storage
 function saveDeletedTasksToLocalStorage() {
     localStorage.setItem('tms_deleted_tasks', JSON.stringify(deletedTasks));
 }
 
-// Load deleted tasks from Local Storage
 function loadDeletedTasksFromLocalStorage() {
-    const deletedString = localStorage.getItem('tms_deleted_tasks');
-    if (deletedString) {
-        try {
-            deletedTasks = JSON.parse(deletedString);
-            // Rebuild stack state for undo matching deletedTasks
-            deletedStack = [...deletedTasks];
-            updateUndoUI();
-        } catch (e) {
-            console.error("Error reading LocalStorage deleted tasks database: ", e);
-            deletedTasks = [];
-            deletedStack = [];
-        }
+    try {
+        deletedTasks = JSON.parse(localStorage.getItem('tms_deleted_tasks')) || [];
+        deletedStack = [...deletedTasks];
+        updateUndoUI();
+    } catch (e) {
+        console.error("Error reading LocalStorage deleted tasks database: ", e);
+        deletedTasks = [];
+        deletedStack = [];
     }
 }
-
-// 13. DELETED TASKS DRAWER RENDER & ACTIONS
 
 function renderDeletedTasks() {
     if (!deletedTasksListContainer) return;
@@ -890,7 +641,7 @@ function renderDeletedTasks() {
         div.innerHTML = `
             <div class="deleted-task-title">${escapeHTML(task.name)}</div>
             <div class="deleted-task-meta">
-               <span>Priority:<span class="task-badge-highlight ${ task.priority ? `badge-${task.priority.toLowerCase()}` : '' }">${task.priority || 'No Priority'} </span></span>
+               <span>Priority: <span class="task-badge-highlight ${task.priority && task.priority !== 'None' ? `badge-${task.priority.toLowerCase()}` : ''}">${task.priority || 'No Priority'}</span></span>
                 <span>Due: ${task.dueDate}</span>
             </div>
             <div class="deleted-task-actions">
@@ -903,53 +654,25 @@ function renderDeletedTasks() {
 }
 
 function restoreDeletedTask(id) {
-    const deletedItemIndex = deletedTasks.findIndex(item => item.task.id === id);
-    if (deletedItemIndex === -1) return;
-
-    const action = deletedTasks[deletedItemIndex];
-    const restoredTask = action.task;
-    const restoredIndex = action.index;
-
-    // 1. Restore to tasks array at its original position
-    tasks.splice(restoredIndex, 0, restoredTask);
-
-    // 2. Restore to O(1) dictionary and Search table
-    taskDictionary[restoredTask.id] = restoredTask;
-    insertTaskIntoSearchTable(restoredTask);
-
-    // 3. Remove from deleted lists
-    deletedTasks.splice(deletedItemIndex, 1);
-    deletedStack = deletedStack.filter(item => item.task.id !== id);
-
-    // Update displays and storage
-    saveDeletedTasksToLocalStorage();
-    saveTasksToLocalStorage();
-    updateUndoUI();
-    updateDashboard();
-    renderTasks();
-    renderDeletedTasks();
+    const action = deletedTasks.find(item => item.task.id === id);
+    if (action) {
+        restoreTask(action);
+        renderDeletedTasks();
+    }
 }
 
 function permanentlyDeleteTask(id) {
-    // Remove from deleted list and stack
     deletedTasks = deletedTasks.filter(item => item.task.id !== id);
     deletedStack = deletedStack.filter(item => item.task.id !== id);
-
-    // Update displays and storage
     saveDeletedTasksToLocalStorage();
     updateUndoUI();
     renderDeletedTasks();
 }
-
-// 14. TASK INDEX DRAWER RENDER
 
 function renderIndex() {
     if (!indexListContainer) return;
     indexListContainer.innerHTML = '';
 
-    // Show currently visible (filtered and searched) tasks or all tasks?
-    // "Display only: Index Number, Task Name. Task names must be clickable."
-    // Let's list all active tasks from the current task array (tasks)
     if (tasks.length === 0) {
         indexListContainer.innerHTML = `
             <div class="empty-state" style="margin-top: 10px; padding: 20px;">
@@ -960,50 +683,33 @@ function renderIndex() {
     }
 
     tasks.forEach((task, index) => {
-        const serialNum = index + 1;
         const link = document.createElement('div');
         link.className = 'index-task-link';
-        link.textContent = `${serialNum}. ${task.name}`;
-        link.addEventListener('click', () => {
-            navigateToTask(task.id);
-        });
+        link.textContent = `${index + 1}. ${task.name}`;
+        link.addEventListener('click', () => navigateToTask(task.id));
         indexListContainer.appendChild(link);
     });
 }
 
 function navigateToTask(id) {
-    // 1. Check if the task is currently rendered on screen.
-    // If not (e.g. filtered out), reset filter to 'all' and clear searches to make it visible
     const taskEl = document.getElementById(`task-card-${id}`);
     if (!taskEl) {
         currentFilter = 'all';
-        filterBtns.forEach(btn => {
-            if (btn.getAttribute('data-filter') === 'all') {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
+        filterBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-filter') === 'all'));
         searchNameInput.value = '';
         searchCategorySelect.value = '';
         searchAssigneeInput.value = '';
         renderTasks();
     }
 
-    // Scroll to the task card
     setTimeout(() => {
         const targetEl = document.getElementById(`task-card-${id}`);
         if (targetEl) {
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Highlight the task
             targetEl.classList.add('highlight-task');
-            setTimeout(() => {
-                targetEl.classList.remove('highlight-task');
-            }, 2500);
+            setTimeout(() => targetEl.classList.remove('highlight-task'), 2500);
         }
     }, 100);
 
-    // Auto-close index drawer
     closeDrawerPanel('index-container');
 }
